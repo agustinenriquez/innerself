@@ -3,13 +3,42 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import httpx
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
+from passlib.context import CryptContext
+from bson import ObjectId
 
 from app.core.config import settings
-from app.models.user import User, GitHubProfile
+from app.models.user import User, GitHubProfile, UserRegister, UserLogin, UserRole
 from app.db.mongodb import get_database
 
 router = APIRouter()
 security = HTTPBearer()
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+def convert_user_doc(user_doc: dict) -> dict:
+    """Convert MongoDB document to format compatible with User model"""
+    if user_doc:
+        # Convert ObjectId to string
+        user_doc["_id"] = str(user_doc["_id"])
+        
+        # Handle datetime fields in essence if they exist
+        if "essence" in user_doc and "last_updated" in user_doc["essence"]:
+            if not isinstance(user_doc["essence"]["last_updated"], str):
+                user_doc["essence"]["last_updated"] = user_doc["essence"]["last_updated"].isoformat()
+                
+        # Handle root-level datetime fields
+        for field in ["created_at", "updated_at"]:
+            if field in user_doc and not isinstance(user_doc[field], str):
+                user_doc[field] = user_doc[field].isoformat()
+                
+    return user_doc
 
 async def create_access_token(data: dict):
     to_encode = data.copy()
@@ -28,11 +57,19 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Invalid token")
     
     db = await get_database()
-    user = await db.users.find_one({"_id": user_id})
-    if user is None:
+    try:
+        # Convert string ID to ObjectId for MongoDB query
+        object_id = ObjectId(user_id)
+        user_doc = await db.users.find_one({"_id": object_id})
+    except Exception:
+        # If user_id is not a valid ObjectId, try as string
+        user_doc = await db.users.find_one({"_id": user_id})
+    
+    if user_doc is None:
         raise HTTPException(status_code=401, detail="User not found")
     
-    return User(**user)
+    user_doc = convert_user_doc(user_doc)
+    return User(**user_doc)
 
 @router.get("/github")
 async def github_oauth():
@@ -155,3 +192,96 @@ async def logout(current_user: User = Depends(get_current_user)):
         {"$set": {"is_online": False}}
     )
     return {"message": "Logged out successfully"}
+
+@router.post("/register")
+async def register(user_data: UserRegister):
+    """Register a new InnerSelf account"""
+    db = await get_database()
+    
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # Hash password
+    password_hash = hash_password(user_data.password)
+    
+    # Create new user
+    user_dict = {
+        "email": user_data.email,
+        "name": user_data.name,
+        "role": user_data.role,
+        "password_hash": password_hash,
+        "is_online": True,
+        "essence": {
+            "overall": 50.0,
+            "pr_quality": 50.0,
+            "communication_score": 50.0,
+            "commit_activity": 50.0,
+            "team_collaboration": 50.0,
+            "last_updated": datetime.utcnow()
+        },
+        "is_active": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    result = await db.users.insert_one(user_dict)
+    user_id = str(result.inserted_id)
+    
+    # Create JWT token
+    access_token = await create_access_token({"sub": user_id})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user_id
+    }
+
+@router.post("/login")
+async def login(user_credentials: UserLogin):
+    """Login with email and password"""
+    db = await get_database()
+    
+    # Find user by email
+    user_doc = await db.users.find_one({"email": user_credentials.email})
+    if not user_doc:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+    
+    user_doc = convert_user_doc(user_doc)
+    user = User(**user_doc)
+    
+    # Check password
+    if not user.password_hash or not verify_password(user_credentials.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+    
+    # Update user online status
+    try:
+        object_id = ObjectId(user.id)
+        await db.users.update_one(
+            {"_id": object_id},
+            {"$set": {"is_online": True, "updated_at": datetime.utcnow()}}
+        )
+    except Exception:
+        await db.users.update_one(
+            {"_id": user.id},
+            {"$set": {"is_online": True, "updated_at": datetime.utcnow()}}
+        )
+    
+    # Create JWT token
+    access_token = await create_access_token({"sub": user.id})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user.id
+    }

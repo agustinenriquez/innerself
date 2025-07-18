@@ -30,6 +30,7 @@ class User(BaseModel):
     email: str
     name: str
     role: UserRole
+    password_hash: Optional[str] = None  # For InnerSelf accounts
     github_profile: Optional[GitHubProfile] = None
     essence: EssenceMetrics = Field(default_factory=EssenceMetrics)
     is_active: bool = True
@@ -52,3 +53,13 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     role: Optional[UserRole] = None
     is_active: Optional[bool] = None
+
+class UserRegister(BaseModel):
+    email: str
+    name: str
+    password: str
+    role: UserRole
+
+class UserLogin(BaseModel):
+    email: str
+    password: str

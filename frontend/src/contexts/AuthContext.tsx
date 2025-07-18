@@ -25,6 +25,8 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (token: string) => Promise<void>;
+  loginWithCredentials: (email: string, password: string) => Promise<void>;
+  register: (userData: { name: string; email: string; password: string; role: string }) => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -81,6 +83,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await loadCurrentUser();
   };
 
+  const loginWithCredentials = async (email: string, password: string) => {
+    const response = await apiService.login(email, password);
+    const token = response.access_token;
+    await login(token);
+  };
+
+  const register = async (userData: { name: string; email: string; password: string; role: string }) => {
+    const response = await apiService.register(userData);
+    const token = response.access_token;
+    await login(token);
+  };
+
   const logout = () => {
     apiService.logout();
     websocketService.disconnect();
@@ -98,6 +112,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     isLoading,
     login,
+    loginWithCredentials,
+    register,
     logout,
     updateUser,
   };

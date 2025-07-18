@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext.tsx';
 
 const Login: React.FC = () => {
+  const { loginWithCredentials, register } = useAuth();
   const [loginMethod, setLoginMethod] = useState<'github' | 'innerself'>('github');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState<'developer' | 'pm' | 'qa' | 'designer'>('developer');
 
   const handleGitHubLogin = () => {
     // Redirect to GitHub OAuth
@@ -12,8 +18,29 @@ const Login: React.FC = () => {
 
   const handleInnerSelfLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement InnerSelf account login
-    console.log('InnerSelf login:', { email, password });
+    try {
+      await loginWithCredentials(email, password);
+      // Redirect will happen automatically through AuthContext
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Login failed. Please check your credentials and try again.');
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    
+    try {
+      await register({ name, email, password, role });
+      // Redirect will happen automatically through AuthContext
+    } catch (error) {
+      console.error('Registration failed:', error);
+      alert('Registration failed. Please try again.');
+    }
   };
 
   return (
@@ -81,64 +108,174 @@ const Login: React.FC = () => {
             </div>
           )}
 
-          {/* InnerSelf Login */}
+          {/* InnerSelf Login/Register */}
           {loginMethod === 'innerself' && (
             <div className="bg-white py-8 px-6 shadow-md rounded-lg">
               <div className="space-y-6">
                 <div className="text-center">
                   <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    Sign in to InnerSelf
+                    {isRegistering ? 'Create InnerSelf Account' : 'Sign in to InnerSelf'}
                   </h3>
                   <p className="text-sm text-gray-500 mb-6">
-                    Access your InnerSelf account to view your essence and team data
+                    {isRegistering 
+                      ? 'Join your team and start building your essence'
+                      : 'Access your InnerSelf account to view your essence and team data'
+                    }
                   </p>
                 </div>
                 
-                <form onSubmit={handleInnerSelfLogin} className="space-y-4">
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email address
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                      Password
-                    </label>
-                    <input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                      placeholder="Enter your password"
-                    />
-                  </div>
-                  
-                  <button
-                    type="submit"
-                    className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                  >
-                    Sign In
-                  </button>
-                </form>
+                {!isRegistering ? (
+                  // Login Form
+                  <form onSubmit={handleInnerSelfLogin} className="space-y-4">
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email address
+                      </label>
+                      <input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter your email"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                        Password
+                      </label>
+                      <input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter your password"
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                    >
+                      Sign In
+                    </button>
+                  </form>
+                ) : (
+                  // Registration Form
+                  <form onSubmit={handleRegister} className="space-y-4">
+                    <div>
+                      <label htmlFor="reg-name" className="block text-sm font-medium text-gray-700 mb-1">
+                        Full Name
+                      </label>
+                      <input
+                        id="reg-name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="reg-email" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email address
+                      </label>
+                      <input
+                        id="reg-email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Enter your email"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="reg-role" className="block text-sm font-medium text-gray-700 mb-1">
+                        Role
+                      </label>
+                      <select
+                        id="reg-role"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value as 'developer' | 'pm' | 'qa' | 'designer')}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                      >
+                        <option value="developer">Developer</option>
+                        <option value="pm">Project Manager</option>
+                        <option value="qa">QA Engineer</option>
+                        <option value="designer">Designer</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="reg-password" className="block text-sm font-medium text-gray-700 mb-1">
+                        Password
+                      </label>
+                      <input
+                        id="reg-password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Create a password"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label htmlFor="reg-confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
+                        Confirm Password
+                      </label>
+                      <input
+                        id="reg-confirm-password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        placeholder="Confirm your password"
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      className="w-full flex justify-center items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                    >
+                      Create Account
+                    </button>
+                  </form>
+                )}
                 
                 <div className="text-center">
                   <p className="text-sm text-gray-600">
-                    Don't have an account?{' '}
-                    <button className="text-primary-600 hover:text-primary-700 font-medium">
-                      Create one
-                    </button>
+                    {!isRegistering ? (
+                      <>
+                        Don't have an account?{' '}
+                        <button 
+                          onClick={() => setIsRegistering(true)}
+                          className="text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          Create one
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        Already have an account?{' '}
+                        <button 
+                          onClick={() => setIsRegistering(false)}
+                          className="text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          Sign in
+                        </button>
+                      </>
+                    )}
                   </p>
                 </div>
               </div>

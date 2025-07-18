@@ -9,10 +9,11 @@ class ApiService {
     // Get token from localStorage
     this.token = localStorage.getItem('access_token');
     
-    // Set up axios interceptor
+    // Set up axios interceptor - use a function to get current token
     axios.interceptors.request.use((config) => {
-      if (this.token) {
-        config.headers.Authorization = `Bearer ${this.token}`;
+      const currentToken = this.token || localStorage.getItem('access_token');
+      if (currentToken) {
+        config.headers.Authorization = `Bearer ${currentToken}`;
       }
       return config;
     });
@@ -43,6 +44,24 @@ class ApiService {
   async getGitHubAuthUrl() {
     const response = await axios.get(`${API_BASE_URL}/auth/github`);
     return response.data.auth_url;
+  }
+  
+  async register(userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+  }) {
+    const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
+    return response.data;
+  }
+  
+  async login(email: string, password: string) {
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+      email,
+      password
+    });
+    return response.data;
   }
   
   async getCurrentUser() {
