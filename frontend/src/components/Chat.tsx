@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import websocketService from '../services/websocket';
+import apiService from '../services/api';
 
 interface Message {
   id: string;
@@ -16,80 +19,56 @@ interface Message {
 }
 
 const Chat: React.FC = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Mock messages - replace with real-time WebSocket
-    const mockMessages: Message[] = [
-      {
-        id: '1',
-        author: {
-          name: 'Sarah Johnson',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face',
-          role: 'PM'
-        },
-        content: 'Hey team, can we get an update on the authentication feature?',
-        timestamp: new Date(Date.now() - 300000),
-        essenceImpact: {
-          type: 'neutral',
-          reason: 'Standard project check-in'
-        }
-      },
-      {
-        id: '2',
-        author: {
-          name: 'Alex Chen',
-          avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face',
-          role: 'Developer'
-        },
-        content: 'Sure! Just finished the OAuth integration. PR is ready for review: #45',
-        timestamp: new Date(Date.now() - 240000),
-        essenceImpact: {
-          type: 'positive',
-          reason: 'Timely response with actionable update'
-        }
-      },
-      {
-        id: '3',
-        author: {
-          name: 'Sarah Johnson',
-          avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=32&h=32&fit=crop&crop=face',
-          role: 'PM'
-        },
-        content: 'Great! Can you also check on the user profile component? And the settings page? Also need status on the dashboard updates.',
-        timestamp: new Date(Date.now() - 180000),
-        essenceImpact: {
-          type: 'negative',
-          reason: 'Multiple requests in rapid succession (micromanagement detected)'
-        }
-      }
-    ];
-    setMessages(mockMessages);
+    loadMessages();
+    
+    // Set up WebSocket listeners
+    websocketService.onMessage((message) => {
+      setMessages(prev => [...prev, message]);
+    });
+    
+    return () => {
+      // Cleanup listeners if needed
+    };
   }, []);
+  
+  const loadMessages = async () => {
+    try {
+      setIsLoading(true);
+      const messagesData = await apiService.getMessages('general', 50);
+      setMessages(messagesData);
+    } catch (error) {
+      console.error('Failed to load messages:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user) return;
 
-    const message: Message = {
-      id: Date.now().toString(),
-      author: {
-        name: 'You',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face',
-        role: 'Developer'
-      },
-      content: newMessage,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, message]);
-    setNewMessage('');
+    try {
+      // Send via API first (for persistence and analysis)
+      await apiService.sendMessage(newMessage, 'general');
+      
+      // Also send via WebSocket for real-time updates
+      websocketService.sendMessage(newMessage, 'general');
+      
+      setNewMessage('');
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
   };
 
   const getEssenceIcon = (impact?: Message['essenceImpact']) => {
@@ -108,7 +87,13 @@ const Chat: React.FC = () => {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-lg shadow-md">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        ) : (
+          <>
+            {messages.map((message) => (
           <div key={message.id} className="flex space-x-3">
             <img
               src={message.author.avatar}
@@ -136,8 +121,10 @@ const Chat: React.FC = () => {
               )}
             </div>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
+            ))}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </div>
 
       <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200">
