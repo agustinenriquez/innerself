@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import NotificationSystem from './NotificationSystem';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path ? 'bg-primary-700' : '';
@@ -45,13 +48,37 @@ const Navbar: React.FC = () => {
               <span className="text-sm">Online</span>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face"
-                alt="Profile"
-                className="w-8 h-8 rounded-full object-cover"
-              />
-              <span className="hidden md:block text-sm">Alex Chen</span>
+            {/* Notifications */}
+            <NotificationSystem />
+            
+            {/* User Profile */}
+            <div className="relative group">
+              <div className="flex items-center space-x-2 cursor-pointer">
+                <img
+                  src={user?.github_profile?.avatar_url || 'https://via.placeholder.com/32'}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <span className="hidden md:block text-sm">{user?.name}</span>
+              </div>
+              
+              {/* Dropdown Menu */}
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="py-2">
+                  <Link
+                    to={`/profile/${user?.id}`}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    View Profile
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
