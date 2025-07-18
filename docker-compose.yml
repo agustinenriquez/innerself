@@ -5,7 +5,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "8080:8000"
     environment:
       - MONGODB_URL=mongodb://mongodb:27017/innerself
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
@@ -21,19 +21,19 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - REACT_APP_API_URL=http://localhost:8080
     command: npm start
 
   # GitHub Integration Service
   github-service:
     build: ./github-service
     ports:
-      - "8001:8000"
+      - "8081:8000"
     environment:
       - MONGODB_URL=mongodb://mongodb:27017/innerself
       - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
@@ -47,7 +47,7 @@ services:
   mongodb:
     image: mongo:7.0
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongodb_data:/data/db
     environment:

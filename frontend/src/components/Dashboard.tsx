@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import apiService from '../services/api';
-import EssenceChart from './EssenceChart';
-import websocketService from '../services/websocket';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import apiService from '../services/api.ts';
+import EssenceChart from './EssenceChart.tsx';
+import websocketService from '../services/websocket.ts';
 
 interface EssenceMetrics {
   overall: number;

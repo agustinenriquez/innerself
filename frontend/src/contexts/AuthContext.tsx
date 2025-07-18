@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import apiService from '../services/api';
-import websocketService from '../services/websocket';
+import apiService from '../services/api.ts';
+import websocketService from '../services/websocket.ts';
 
 interface User {
   id: string;

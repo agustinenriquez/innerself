@@ -1,13 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
-import Dashboard from './components/Dashboard';
-import Login from './components/Login';
-import Chat from './components/Chat';
-import Profile from './components/Profile';
-import Navbar from './components/Navbar';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoadingSpinner from './components/LoadingSpinner';
+import Dashboard from './components/Dashboard.tsx';
+import Login from './components/Login.tsx';
+import Chat from './components/Chat.tsx';
+import Profile from './components/Profile.tsx';
+import Navbar from './components/Navbar.tsx';
+import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
+import LoadingSpinner from './components/LoadingSpinner.tsx';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();

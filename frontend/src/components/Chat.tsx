@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import websocketService from '../services/websocket';
-import apiService from '../services/api';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import websocketService from '../services/websocket.ts';
+import apiService from '../services/api.ts';
 
 interface Message {
   id: string;

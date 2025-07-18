@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import websocketService from '../services/websocket';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import websocketService from '../services/websocket.ts';
 
 interface Notification {
   id: string;

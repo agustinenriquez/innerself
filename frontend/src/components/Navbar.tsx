@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import NotificationSystem from './NotificationSystem';
+import { useAuth } from '../contexts/AuthContext.tsx';
+import NotificationSystem from './NotificationSystem.tsx';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
