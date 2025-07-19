@@ -29,7 +29,10 @@ class WebSocketService {
   connect(userId: string, token: string) {
     if (this.isConnected) return;
     
-    this.socket = io(`ws://localhost:8000/ws/${userId}`, {
+    const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const wsUrl = API_BASE_URL.replace('http', 'ws');
+    
+    this.socket = io(`${wsUrl}/ws/${userId}`, {
       auth: {
         token
       }
@@ -45,7 +48,7 @@ class WebSocketService {
       console.log('Disconnected from WebSocket');
     });
     
-    this.socket.on('error', (error) => {
+    this.socket.on('error', (error: any) => {
       console.error('WebSocket error:', error);
     });
   }

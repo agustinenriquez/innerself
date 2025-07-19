@@ -6,18 +6,54 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Darcula dark theme
+        dark: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+        },
+        // Darcula background colors
+        bg: {
+          primary: '#2B2B2B',
+          secondary: '#3C3F41',
+          tertiary: '#45494A',
+          hover: '#4C5052',
+          border: '#5E6265',
+        },
+        // Purple/violet accents for Darcula
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
+          50: '#faf5ff',
+          100: '#f3e8ff',
+          200: '#e9d5ff',
+          300: '#d8b4fe',
+          400: '#c084fc',
+          500: '#a855f7',
+          600: '#9333ea',
+          700: '#7c3aed',
+          800: '#6b21a8',
+          900: '#581c87',
+        },
+        // Text colors for dark theme
+        text: {
+          primary: '#BBBBBB',
+          secondary: '#A9B7C6',
+          muted: '#808080',
+          accent: '#FFC66D',
+          error: '#FF6B68',
+          success: '#629755',
         },
         essence: {
-          high: '#10b981',
-          medium: '#3b82f6',
-          low: '#f59e0b',
-          zero: '#6b7280',
+          high: '#9876AA',
+          medium: '#CC7832',
+          low: '#FFC66D',
+          zero: '#808080',
         }
       }
     },

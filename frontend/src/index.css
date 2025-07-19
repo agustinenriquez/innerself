@@ -9,4 +9,29 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #2B2B2B;
+  color: #BBBBBB;
+}
+
+/* Darcula theme base styles */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #5E6265 #3C3F41;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #3C3F41;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #5E6265;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6B7074;
 }
