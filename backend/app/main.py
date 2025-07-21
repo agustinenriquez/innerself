@@ -6,7 +6,7 @@ from typing import List
 
 from app.core.config import settings
 from app.db.mongodb import connect_to_mongo, close_mongo_connection
-from app.api.routes import auth, messages, users, reputation, github
+from app.api.routes import auth, messages, users, reputation, github, glassdoor
 from app.services.websocket_manager import ConnectionManager
 
 @asynccontextmanager
@@ -42,6 +42,7 @@ app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(messages.router, prefix="/messages", tags=["messages"])
 app.include_router(reputation.router, prefix="/reputation", tags=["reputation"])
 app.include_router(github.router, prefix="/github", tags=["github"])
+app.include_router(glassdoor.router, prefix="/glassdoor", tags=["glassdoor"])
 
 @app.get("/")
 async def root():
