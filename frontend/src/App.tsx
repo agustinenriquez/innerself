@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard.tsx';
 import Login from './components/Login.tsx';
 import Chat from './components/Chat.tsx';
 import Profile from './components/Profile.tsx';
+import Stats from './components/Stats.tsx';
 import Navbar from './components/Navbar.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import LoadingSpinner from './components/LoadingSpinner.tsx';
@@ -51,6 +52,7 @@ const AppContent: React.FC = () => {
               <Profile />
             </ProtectedRoute>
           } />
+          <Route path="/stats" element={<Stats />} />
         </Routes>
       </main>
     </div>

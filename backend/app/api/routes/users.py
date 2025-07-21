@@ -8,6 +8,19 @@ from app.api.routes.auth import get_current_user
 
 router = APIRouter()
 
+@router.get("/public", response_model=List[User])
+async def get_users_public():
+    """Get all users (public endpoint for stats)"""
+    db = await get_database()
+    users_cursor = db.users.find({"is_active": True})
+    users = []
+    
+    async for user_doc in users_cursor:
+        user_doc["_id"] = str(user_doc["_id"])
+        users.append(User(**user_doc))
+    
+    return users
+
 @router.get("/", response_model=List[User])
 async def get_users(current_user: User = Depends(get_current_user)):
     """Get all users"""

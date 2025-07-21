@@ -39,6 +39,12 @@ const Navbar: React.FC = () => {
               >
                 Profile
               </Link>
+              <Link
+                to="/stats"
+                className={`px-3 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors ${isActive('/stats')}`}
+              >
+                Stats
+              </Link>
             </div>
           </div>
 

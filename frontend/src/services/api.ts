@@ -74,6 +74,11 @@ class ApiService {
     const response = await axios.get(`${API_BASE_URL}/users/`);
     return response.data;
   }
+
+  async getUsersPublic() {
+    const response = await axios.get(`${API_BASE_URL}/users/public`);
+    return response.data;
+  }
   
   async getUser(userId: string) {
     const response = await axios.get(`${API_BASE_URL}/users/${userId}`);
@@ -115,6 +120,11 @@ class ApiService {
   // Essence endpoints
   async getEssenceLeaderboard(limit: number = 10, timeframe: string = 'week') {
     const response = await axios.get(`${API_BASE_URL}/reputation/leaderboard?limit=${limit}&timeframe=${timeframe}`);
+    return response.data;
+  }
+
+  async getEssenceLeaderboardPublic(limit: number = 10, timeframe: string = 'week') {
+    const response = await axios.get(`${API_BASE_URL}/reputation/leaderboard/public?limit=${limit}&timeframe=${timeframe}`);
     return response.data;
   }
   

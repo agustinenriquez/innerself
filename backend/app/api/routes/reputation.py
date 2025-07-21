@@ -10,6 +10,44 @@ from app.api.routes.auth import get_current_user
 
 router = APIRouter()
 
+@router.get("/leaderboard/public")
+async def get_essence_leaderboard_public(
+    limit: int = 10,
+    timeframe: str = "all",  # "day", "week", "month", "all"
+):
+    """Get essence leaderboard (public endpoint for stats)"""
+    db = await get_database()
+    
+    # Calculate date filter
+    date_filter = {}
+    if timeframe != "all":
+        now = datetime.utcnow()
+        if timeframe == "day":
+            start_date = now - timedelta(days=1)
+        elif timeframe == "week":
+            start_date = now - timedelta(weeks=1)
+        elif timeframe == "month":
+            start_date = now - timedelta(days=30)
+        else:
+            start_date = now - timedelta(days=7)  # Default to week
+        
+        date_filter = {"updated_at": {"$gte": start_date}}
+    
+    # Get users sorted by overall essence
+    users = []
+    async for user_doc in db.users.find(
+        {**date_filter, "is_active": True}
+    ).sort("essence.overall", -1).limit(limit):
+        user_doc["_id"] = str(user_doc["_id"])
+        users.append({
+            "user_id": user_doc["_id"],
+            "name": user_doc["name"],
+            "essence": user_doc.get("essence", {}).get("overall", 50),
+            "rank": len(users) + 1
+        })
+    
+    return users
+
 @router.get("/leaderboard")
 async def get_essence_leaderboard(
     limit: int = 10,

@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     github_client_id: str = os.getenv("GITHUB_CLIENT_ID", "")
     github_client_secret: str = os.getenv("GITHUB_CLIENT_SECRET", "")
     github_webhook_secret: str = os.getenv("GITHUB_WEBHOOK_SECRET", "")
+    github_token: str = os.getenv("GITHUB_TOKEN", "")
     
     # API Configuration
     api_v1_prefix: str = "/api/v1"
