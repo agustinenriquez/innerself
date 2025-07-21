@@ -74,7 +74,8 @@ class TestGlassdoorScraper:
             
             result = await glassdoor_scraper.search_company("CXC")
             
-            assert result == "https://www.glassdoor.com/Reviews/CXC-Technologies-Reviews-E966930.htm"
+            # Should return the first Overview link found (scraper prioritizes Overview over Reviews)
+            assert result == "https://www.glassdoor.com/Overview/Working-at-CXC-E966930.htm"
     
     @pytest.mark.asyncio
     async def test_search_company_not_found(self, glassdoor_scraper):

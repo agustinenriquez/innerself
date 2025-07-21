@@ -273,17 +273,27 @@ class TestGlassdoorAPI:
     async def test_list_companies_success(self, mock_user):
         """Test successful listing of companies"""
         mock_companies = [
-            {"_id": "id1", "company_name": "Company 1", "overall_rating": 4.0},
-            {"_id": "id2", "company_name": "Company 2", "overall_rating": 3.5},
+            {"_id": "id1", "company_name": "Company 1", "overall_rating": 4.0, "glassdoor_url": "", "raw_data": {}, "scraped_at": datetime.utcnow(), "last_updated": datetime.utcnow()},
+            {"_id": "id2", "company_name": "Company 2", "overall_rating": 3.5, "glassdoor_url": "", "raw_data": {}, "scraped_at": datetime.utcnow(), "last_updated": datetime.utcnow()},
         ]
         
-        mock_cursor = AsyncMock()
-        mock_cursor.sort.return_value.limit.return_value.__aiter__ = AsyncMock(
-            return_value=iter(mock_companies)
-        )
+        # Create a proper async iterator mock
+        async def mock_async_iter(self):
+            for company in mock_companies:
+                yield company
+        
+        # Mock the full chain properly
+        mock_cursor = Mock()
+        mock_cursor.__aiter__ = mock_async_iter
+        
+        mock_sort_and_limit = Mock()
+        mock_sort_and_limit.return_value = mock_cursor
+        
+        mock_sort = Mock()
+        mock_sort.return_value.limit = mock_sort_and_limit
         
         mock_db = AsyncMock()
-        mock_db.glassdoor_companies.find.return_value = mock_cursor
+        mock_db.glassdoor_companies.find.return_value.sort = mock_sort
         
         from app.api.routes.glassdoor import list_companies
         
